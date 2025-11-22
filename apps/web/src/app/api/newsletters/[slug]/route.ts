@@ -9,13 +9,17 @@ import { createAuthenticatedClient } from "@/lib/trpc-server";
 
 // Configure marked for rich markdown support
 marked.setOptions({
-  gfm: true,          // GitHub Flavored Markdown: tables, task lists, etc.
-  breaks: true,       // Line breaks
+  gfm: true, // GitHub Flavored Markdown: tables, task lists, etc.
+  breaks: true, // Line breaks
 });
 
 // Cache individual newsletters
 const newsletterCache = new Map<string, { data: any; time: number }>();
-const CACHE_DURATION = 60_000; // 1 minute
+// cache longer in production since newsletter content changes infrequently
+const CACHE_DURATION =
+  process.env.NODE_ENV === "production"
+    ? 3600000
+    : 60000;
 
 export async function GET(
   _request: Request,
@@ -23,7 +27,7 @@ export async function GET(
 ) {
   // Authenticate user
   const session = await getServerSession(authConfig);
-  
+
   if (!session || !session.user?.email) {
     return NextResponse.json(
       { error: "Unauthorized - Please sign in" },
@@ -34,8 +38,10 @@ export async function GET(
   // Verify paid subscription
   try {
     const trpc = createAuthenticatedClient(session);
-    const subscriptionStatus = await (trpc.user as any).subscriptionStatus.query();
-    
+    const subscriptionStatus = await (
+      trpc.user as any
+    ).subscriptionStatus.query();
+
     if (!subscriptionStatus.isPaidUser) {
       return NextResponse.json(
         { error: "Forbidden - Premium subscription required" },
@@ -63,7 +69,10 @@ export async function GET(
 
   try {
     if (!fs.existsSync(filePath)) {
-      return NextResponse.json({ error: "Newsletter not found" }, { status: 404 });
+      return NextResponse.json(
+        { error: "Newsletter not found" },
+        { status: 404 }
+      );
     }
 
     const fileContent = fs.readFileSync(filePath, "utf8");
@@ -84,6 +93,9 @@ export async function GET(
     return NextResponse.json(result);
   } catch (error) {
     console.error("Error reading newsletter:", error);
-    return NextResponse.json({ error: "Newsletter not found" }, { status: 404 });
+    return NextResponse.json(
+      { error: "Newsletter not found" },
+      { status: 404 }
+    );
   }
 }

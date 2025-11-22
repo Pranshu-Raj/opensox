@@ -9,12 +9,16 @@ import { createAuthenticatedClient } from "@/lib/trpc-server";
 // Cache newsletters in memory for faster subsequent loads
 let cachedNewsletters: any[] | null = null;
 let lastCacheTime = 0;
-const CACHE_DURATION = 60000; 
+// cache longer in production since newsletter content changes infrequently
+const CACHE_DURATION =
+  process.env.NODE_ENV === "production"
+    ? 3600000 // 1 hour in production
+    : 60000; // 1 minute in dev
 
 export async function GET() {
   // Authenticate user
   const session = await getServerSession(authConfig);
-  
+
   if (!session || !session.user?.email) {
     return NextResponse.json(
       { error: "Unauthorized - Please sign in" },
@@ -25,8 +29,10 @@ export async function GET() {
   // Verify paid subscription
   try {
     const trpc = createAuthenticatedClient(session);
-    const subscriptionStatus = await (trpc.user as any).subscriptionStatus.query();
-    
+    const subscriptionStatus = await (
+      trpc.user as any
+    ).subscriptionStatus.query();
+
     if (!subscriptionStatus.isPaidUser) {
       return NextResponse.json(
         { error: "Forbidden - Premium subscription required" },
@@ -42,14 +48,14 @@ export async function GET() {
   }
 
   const now = Date.now();
-  
+
   // Return cached data if available and fresh
   if (cachedNewsletters && now - lastCacheTime < CACHE_DURATION) {
     return NextResponse.json(cachedNewsletters);
   }
 
   const newslettersDir = path.join(process.cwd(), "src/content/newsletters");
-  
+
   try {
     if (!fs.existsSync(newslettersDir)) {
       fs.mkdirSync(newslettersDir, { recursive: true });
@@ -57,14 +63,14 @@ export async function GET() {
     }
 
     const files = fs.readdirSync(newslettersDir);
-    
+
     const newsletters = files
       .filter((file) => file.endsWith(".md"))
       .map((file) => {
         const filePath = path.join(newslettersDir, file);
         const fileContent = fs.readFileSync(filePath, "utf8");
         const { data } = matter(fileContent);
-        
+
         return {
           id: file.replace(".md", ""),
           title: data.title || "Untitled",
@@ -75,11 +81,11 @@ export async function GET() {
         };
       })
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-    
+
     // Update cache
     cachedNewsletters = newsletters;
     lastCacheTime = now;
-    
+
     return NextResponse.json(newsletters);
   } catch (error) {
     console.error("Error reading newsletters:", error);

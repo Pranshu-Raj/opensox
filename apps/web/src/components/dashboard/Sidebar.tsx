@@ -65,7 +65,7 @@ const PREMIUM_ROUTES: RouteConfig[] = [
     path: "/dashboard/newsletters",
     label: "Newsletter",
     icon: <NewspaperIcon className="size-5" />,
-    badge: "New"
+    badge: "New",
   },
 ];
 
@@ -188,7 +188,7 @@ export default function Sidebar({ overlay = false }: { overlay?: boolean }) {
                       {route.label}
                     </h1>
                     {route.badge && (
-                      <span className="px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider bg-brand-purple/20 text-brand-purple rounded border border-brand-purple/30 shrink-0">
+                      <span className="px-1.5 py-0.5 text-[8px] font-semibold uppercase tracking-wider bg-brand-purple/20 text-text-primary rounded border border-brand-purple/30 shrink-0">
                         {route.badge}
                       </span>
                     )}
@@ -318,7 +318,7 @@ export default function Sidebar({ overlay = false }: { overlay?: boolean }) {
                             {route.label}
                           </h1>
                           {route.badge && (
-                            <span className="px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider bg-brand-purple/20 text-brand-purple rounded border border-brand-purple/30 shrink-0">
+                            <span className="px-1.5 py-0.5 text-[8px] font-semibold uppercase tracking-wider bg-brand-purple/20 text-text-primary rounded border border-brand-purple/30 shrink-0">
                               {route.badge}
                             </span>
                           )}
@@ -362,7 +362,7 @@ export default function Sidebar({ overlay = false }: { overlay?: boolean }) {
                         {route.label}
                       </h1>
                       {route.badge && (
-                        <span className="px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider bg-brand-purple/20 text-brand-purple rounded border border-brand-purple/30 shrink-0 opacity-75">
+                        <span className="px-1.5 py-0.5 text-[8px] font-semibold uppercase tracking-wider bg-brand-purple/20 text-text-primary rounded border border-brand-purple/30 shrink-0 opacity-75">
                           {route.badge}
                         </span>
                       )}
